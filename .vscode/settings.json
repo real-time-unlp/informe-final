@@ -1,0 +1,8 @@
+{
+	"terminal.integrated.env.windows": {
+		"PATH": "C:\\Users\\Ramiro\\.platformio\\penv\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\Git\\cmd;C:\\Users\\Ramiro\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\Program Files\\Microsoft VS Code\\bin;C:\\texlive\\2017\\bin\\win32;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\Git\\cmd;C:\\Users\\Ramiro\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\Program Files\\Microsoft VS Code\\bin;C:\\texlive\\2017\\bin\\win32"
+	},
+	"editor.tabSize": 8,
+	"editor.renderWhitespace": "boundary",
+	"editor.insertSpaces": false
+}
