@@ -1,3 +1,8 @@
+\lstset {
+	columns=flexible,
+	tabsize=4
+}
+
 \section{Abstracción y modelado}
 El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}. A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección. Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones.
 
@@ -36,7 +41,7 @@ Se puede ver la situación de estar un sólo tramo activo en la figura \ref{fig:
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=6cm]{imagenes/un-activo.eps}
-	\caption{Intersección con un tramo activo pero sin peatón.}
+	\caption{Intersección con un tramo activo.}
 	\label{fig:un-activo}
 \end{figure}
 
@@ -84,4 +89,30 @@ Se realizaron tres implementaciones que implementan el sistema según lo especif
 
 \section{Implementación A}
 \section{Implementación B}
+En esta implementación se trata de transferir hacia el kernel de FreeRTOS la responsabilidad de elegir cuál semáforo adquiere el recurso, es decir, a cual tramo se le da el paso.
+
+Se tienen, al igual que en la implementación A, $N + 1$ ($N$ tramos y el tramo distinguido para los peatones) tareas, donde cada una representa un tramo y todas tratan de acceder a una sección crítica, protegida ahora por un sólo mútex.
+
+Se utilizan dos valores de prioridad en las tareas, una alta y una baja. Las tareas correspondientes a tramos activos toman una prioridad alta y las tareas correspondientes a tramos inactivos toman una prioridad baja. La prioridad de las tareas está ligada a la actividad de su tramo, con lo cual las prioridades van variando a lo largo del funcionamiento del sistema.
+
+Para que el orden en el cual cada tarea adquiere el mútex sea determinístico, no es suficiente que el planificador sea débilmente $fair$, sino que es necesario que se aplique una política de planificación que realice Round-Robin entre tareas de misma prioridad. FreeRTOS permite lograr esto mediante su archivo de configuración.
+
+Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-b}.
+
+\begin{lstlisting}[label=lst:imp-b, caption=Pseudocódigo del programa que corre cada tarea en la implementación B.]
+	while (true)
+		P(mutex)
+		do
+			Verde()
+			Delay(...)
+			Leer sensores y actualizar prioridades
+		while (Este tramo sea el unico activo)
+		Amarillo()
+		Delay(...)
+		Rojo()
+		Delay(...)
+		V(mutex)
+	Fin while
+\end{lstlisting}
+
 \section{Implementación C}
