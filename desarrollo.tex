@@ -1,5 +1,12 @@
 \section{Abstracción y modelado}
-El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas. A lo largo de este trabajo se utilizará el termino \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección. Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones.
+El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}. A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección. Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=6cm]{imagenes/interseccion-base.eps}
+	\caption{Intersección base.}
+	\label{fig:interseccion-base}
+\end{figure}
 
 Se asume que se existe una forma fiable de detectar la presencia de vehículos en un tramo. Se dice que un tramo está \enquote{activo} si y solo si hay al menos un vehículo en él.
 
@@ -7,15 +14,66 @@ Por otro lado, también se debe tener en cuenta la presencia de peatones. Para e
 
 Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua. Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
 
+\subsection{Especificación del comportamiento}
+Para entender mejor el problema a resolver se tuvo que analizar cada situación que se presenta en una intersección.
+\subsection{Ningún tramo activo}
+Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (Round-Robin). Se puede ver esta situación en la figura \ref{fig:ningun-activo}.
+
+Si estuviera activo el tramo del peatón, entonces se incluye al tramo de peatón al conjunto de tramos participantes del Round-Robin.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=6cm]{imagenes/ningun-activo.eps}
+	\caption{Intersección sin vehículos ni peatón.}
+	\label{fig:ningun-activo}
+\end{figure}
+
+\subsection{Un tramo activo}
+Cuando hay un solo tramo activo, entonces se le debe dar el paso ininterrumpidamente hasta que haya otro tramo activo (esto incluye el caso en que se active el tramo de peatones).
+
+Se puede ver la situación de estar un sólo tramo activo en la figura \ref{fig:un-activo}.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=6cm]{imagenes/un-activo.eps}
+	\caption{Intersección con un tramo activo pero sin peatón.}
+	\label{fig:un-activo}
+\end{figure}
+
+\subsection{Más de un tramo activo}
+Cuando hay mas de un tramo activo, simplemente debe hacerse Round-Robin como en el caso anterior pero sólo participan los semáforos correspondientes a los tramos activos, permanenciendo el resto en rojo.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=6cm]{imagenes/dos-activos.eps}
+	\caption{Intersección con dos tramos activos.}
+	\label{fig:dos-activos}
+\end{figure}
+
+Se puede ver la situación de estar dos tramos activos en la figura \ref{fig:dos-activos}.
+
+A modo de resumen, se lista las situaciones y el comportamiento correspondiente en la tabla \ref{tab:comportamiento}.
+
+\rowcolors{2}{gray!25}{white}
+\begin{table}[htbp]
+	\centering
+	\caption{Resumen de comportamiento del sistema ante distintas combinaciones de entrada.}
+	\vspace{0.25cm}
+	\label{tab:comportamiento}
+	\begin{tabular}{ccp{7cm}}
+		\toprule
+		\bf{Tramos activos} & \bf{Comportamiento} \\
+		\midrule
+		0 & Round-robin entre todos los tramos. \\
+		1 & Verde ininterrumpido al único tramo activo. \\
+		$1 < \mbox{TA} \le N$ & Round-robin entre los tramos activos. \\
+		$N$ & Round-robin entre todos los tramos activos. \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
 \subsection{Uso de procesos}
 Basándose en el marco teórico de la programación concurrente, se puede modelar a cada tramo como un proceso que trata de acceder al recurso compartido (la intersección). De esta forma el problema del control del tránsito se reduce al de la planificación de un recurso compartido. Este recurso compartido programáticamente se convierte entonces en una sección crítica.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=10cm]{imagenes/interseccion-base.eps}
-	\caption{Intersección base.}
-	\label{fig:interseccion-base}
-\end{figure}
 
 \section{Implementaciones}
 
