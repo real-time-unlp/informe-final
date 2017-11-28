@@ -14,7 +14,7 @@ Por otro lado, también se debe tener en cuenta la presencia de peatones. Para e
 
 Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua. Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
 
-\subsection{Especificación del comportamiento}
+\subsection{Especificación del comportamiento}\label{sec:spec}
 Para entender mejor el problema a resolver se tuvo que analizar cada situación que se presenta en una intersección.
 \subsection{Ningún tramo activo}
 Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (Round-Robin). Se puede ver esta situación en la figura \ref{fig:ningun-activo}.
@@ -59,7 +59,7 @@ A modo de resumen, se lista las situaciones y el comportamiento correspondiente 
 	\caption{Resumen de comportamiento del sistema ante distintas combinaciones de entrada.}
 	\vspace{0.25cm}
 	\label{tab:comportamiento}
-	\begin{tabular}{ccp{7cm}}
+	\begin{tabular}{cc}
 		\toprule
 		\bf{Tramos activos} & \bf{Comportamiento} \\
 		\midrule
@@ -71,11 +71,16 @@ A modo de resumen, se lista las situaciones y el comportamiento correspondiente 
 	\end{tabular}
 \end{table}
 
-\subsection{Uso de procesos}
+\subsection{Uso de procesos}\label{sec:proc}
 Basándose en el marco teórico de la programación concurrente, se puede modelar a cada tramo como un proceso que trata de acceder al recurso compartido (la intersección). De esta forma el problema del control del tránsito se reduce al de la planificación de un recurso compartido. Este recurso compartido programáticamente se convierte entonces en una sección crítica.
 
 
-\section{Implementaciones}
+\section{Implementación del sistema}
+La implementación del controlador de semáforos se realizó sobre un Arduino Uno, utilizando la plataforma de desarrollo Arduino. Como herramienta de desarrollo se utilizó la extensión PlatformIO para el editor de texto Visual Studio Code.
+
+FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código base y realizar el desarrollo directamente sobre ellos. No existe una implementación oficialmente soportada por Real Engineers Ltd. (la empresa detrás de FreeRTOS), ni tampoco una implementación para el microcontrolador del Arduino Uno, el Atmega 328P. Sin embargo, existe una implementación no oficialmente soportada para Arduino Uno. El repositorio git de esta implementación está en \url{https://github.com/feilipu/Arduino\_FreeRTOS\_Library}.
+
+Se realizaron tres implementaciones que implementan el sistema según lo especificado en la sección \ref{sec:spec}. Cada implementación hace uso de las distintas funcionalidades provistas por FreeRTOS de forma distinta, pero todas tienen en común el uso de semáforos, mútexes y tareas. Los procesos se traducen a tareas en FreeRTOS y la exclusión mutua perteneciente a la sección crítica mencionada en la sección \ref{sec:proc} se hace cumplir con el uso de semáforos y mútexes.
 
 \section{Implementación A}
 \section{Implementación B}
