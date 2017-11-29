@@ -88,6 +88,22 @@ FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código b
 Se realizaron tres implementaciones que implementan el sistema según lo especificado en la sección \ref{sec:spec}. Cada implementación hace uso de las distintas funcionalidades provistas por FreeRTOS de forma distinta, pero todas tienen en común el uso de semáforos, mútexes y tareas. Los procesos se traducen a tareas en FreeRTOS y la exclusión mutua perteneciente a la sección crítica mencionada en la sección \ref{sec:proc} se hace cumplir con el uso de semáforos y mútexes.
 
 \section{Implementación A}
+En esta implementación existe un controlador que controla que tareas (correspondiente a cada tramo) tiene que ejecutar en cada instante de tiempo.
+
+El controlador realiza la planificación según los datos sensados de una clase sensor que lee la actividad de los tramos y se comunica mediante productor/consumidor para pasarle los datos al controlador.
+
+El pseudo código de la tarea controlador se puede observar en el fragmento \ref{lst:imp-a}.
+\begin{lstlisting}[label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
+
+while (true)
+	Se sensa los tramos
+	Si hay un tramo nuevo activo
+		Se prende éste y se apaga el anterior en verde
+		
+\end{lstlisting}
+
+Una de las desventajas es que se tiene muchas tareas en ejecución debido a que es necesario sensar constantemente los tramos y que se recurre a un controlador para la planificación
+
 \section{Implementación B}
 En esta implementación se trata de transferir hacia el kernel de FreeRTOS la responsabilidad de elegir cuál semáforo adquiere el recurso, es decir, a cual tramo se le da el paso.
 
