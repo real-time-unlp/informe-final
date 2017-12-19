@@ -76,6 +76,16 @@ A modo de resumen, se lista las situaciones y el comportamiento correspondiente 
 	\end{tabular}
 \end{table}
 
+
+\subsection{Interacción con peatones}
+En caso de que haya peatones esperando por cruzar, entonces los mismos deben establecer un pedido al sistema, presionando el botón que se encuentra al costado de cada semáforo.
+Esta acción les garantiza que en algún momento todos los semáforos pondrán sus luces en rojo, evitando que cualquier auto cruce y se encienda la luz blanca del peatón.
+En ese momento cualquier peatón que se encuentre en alguna de las esquinas tendrá paso durante un tiempo.
+
+Al finalizar ese lapso, se vuelve al funcionamiento normal, previamente descripto.
+En caso de que hubiera más peatones por cruzar, el sistema no les volverá a otorgar paso hasta que el botón no sea presionado nuevamente.
+Esa es la única diferencia entre los semáforos de los autos y de los peatones.
+
 \subsection{Uso de procesos}\label{sec:proc}
 Basándose en el marco teórico de la programación concurrente, se puede modelar a cada tramo como un proceso que trata de acceder al recurso compartido (la intersección). De esta forma el problema del control del tránsito se reduce al de la planificación de un recurso compartido. Este recurso compartido programáticamente se convierte entonces en una sección crítica.
 
@@ -87,10 +97,22 @@ FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código b
 
 Se realizaron tres implementaciones que implementan el sistema según lo especificado en la sección \ref{sec:spec}. Cada implementación hace uso de las distintas funcionalidades provistas por FreeRTOS de forma distinta, pero todas tienen en común el uso de semáforos, mútexes y tareas. Los procesos se traducen a tareas en FreeRTOS y la exclusión mutua perteneciente a la sección crítica mencionada en la sección \ref{sec:proc} se hace cumplir con el uso de semáforos y mútexes.
 
-\section{Implementación A}
-En esta implementación existe un controlador que controla que tareas (correspondiente a cada tramo) tiene que ejecutar en cada instante de tiempo.
 
-El controlador realiza la planificación según los datos sensados de una clase sensor que lee la actividad de los tramos y se comunica mediante productor/consumidor para pasarle los datos al controlador.
+
+\section{Implementación A}
+En esta primera implementación, se modela a cada semáforo como una tarea de FreeRTOS y su prioridad es estática.
+Adicionalmente existe un proceso controlador, de máxima prioridad, que determina quién es la próxima tarea en ingresar a la sección crítica, es decir, en poner en verde su semáforo.
+
+El controlador realiza dicha planificación a partir de los datos sensados por una clase sensor que lee la actividad de cada tramo.
+Ésta tiene una prioridad también alta, pero solo corre cuando el controlador le indica.
+
+Al obtener los datos, éste se los pasa al controlador, quien está a la espera de los mismos, mediante el modelo productor/consumidor.
+Dicho modelo representa una utilización ineficiente de los recursos ya que constantemente se realiza una copia de los datos obtenidos para que el controlador pueda disponer de los datos.
+
+El controlador toma los datos 
+
+
+
 
 El pseudo código de la tarea controlador se puede observar en el fragmento \ref{lst:imp-a}.
 \begin{lstlisting}[label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
