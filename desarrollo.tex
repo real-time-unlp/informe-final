@@ -81,7 +81,7 @@ Basándose en el marco teórico de la programación concurrente, se puede modela
 
 
 \section{Implementación del sistema}
-La implementación del controlador de semáforos se realizó sobre un Arduino Uno, utilizando la plataforma de desarrollo Arduino. Como herramienta de desarrollo se utilizó la extensión PlatformIO para el editor de texto Visual Studio Code.
+La implementación del controlador de semáforos se realizó sobre un Arduino Uno, utilizando la plataforma de desarrollo Arduino.Como herramienta de desarrollo se utilizó la extensión PlatformIO para el editor de texto Visual Studio Code.
 
 FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código base y realizar el desarrollo directamente sobre ellos. No existe una implementación oficialmente soportada por Real Engineers Ltd. (la empresa detrás de FreeRTOS), ni tampoco una implementación para el microcontrolador del Arduino Uno, el Atmega 328P. Sin embargo, existe una implementación no oficialmente soportada para Arduino Uno. El repositorio git de esta implementación está en \url{https://github.com/feilipu/Arduino\_FreeRTOS\_Library}.
 
@@ -132,3 +132,47 @@ Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-b}.
 \end{lstlisting}
 
 \section{Implementación C}
+
+La tercera implementación de este proyecto surge con la necesidad de eliminar los problemas que se introducen en las anteriores soluciones.
+El principal inconveniente que se busca solucionar, se relaciona con el uso de las proiridades dinámicas.
+En particular, cuando se le cambia la prioridad a una tarea que se encuentra en el estado bloqueada, el programa no responde tal como era de esperarse.
+
+Para esta implementación se sigue modelando a cada tramo como una tarea de FreeRTOS (incluyendo al de los peatones) y se toma las mejores características de los anteriores diseños.
+En primer lugar, las prioridades vuelven a ser estáticas, evitando así el problema del cambio de prioridades sobre tareas que no se encuentren en estado Ready-To-Run ni Running.
+
+Por otra parte, se elimina la existencia de un proceso controlador.
+La tarea de planificación queda a cargo del kernel de FreeRTOS.
+De esta forma el diseño de la solución queda más simple, tal como en la segunda implementación.
+No se utilizan búffers, ni el modelo productor/consumidor y los recursos se aprovechan al máximo.
+
+Es fácil de extender a más tramos, por ejemplo si se agrega el cruce con un diagonal.
+Además permite pensar al peatón como un semáforo más, cosa que no ocurría en la primera implementación.
+
+La principal diferencia respecto de las anteriores soluciones es que en este diseño, la intersección no se implementa con un único mútex.
+Cabe destacar que se sigue pensando como una sóla sección crítica pero en su codificación representa un mútex por cada tarea.
+
+De esta forma cada proceso se duerme en su propio mútex e independientemente de la actividad que haya en su tramo, se garantiza que en algún momento entra a la sección crítica.
+Cuando dicho evento ocurre, la tarea tiene posibilidad de consultar con su sensor si hay autos o peatones (según corresponda) esperando por cruzar, y en caso afirmativo, coloca verde en su semáforo.
+
+Al finalizar su trabajo, la tarea despierta a la próxima para que tenga posibilidad de ejecutarse, y la primera se vuelve a dormir en su propio mútex nuevamente hasta que le toque correr otra vez.
+
+Este diseño permite que las tareas se autocontrolen sin la necesidad de la existencia de un proceso controlador.
+
+Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-c}.
+
+\begin{lstlisting}[label=lst:imp-c, caption=Pseudocódigo del programa que corre cada tarea en la implementación C.]
+	while (true)
+		P(mutex[i])
+		if (es activo o no hay activos)
+			do
+				Verde()
+				Delay(...)
+				Leer sensores
+			while (Este tramo sea el unico activo)
+			Amarillo()
+			Delay(...)
+			Rojo()
+			Delay(...)
+		V(mutex[i++])
+	Fin while
+\end{lstlisting}
