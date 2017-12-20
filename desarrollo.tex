@@ -1,9 +1,9 @@
 \lstset {
-	columns=flexible,
-	tabsize=4
+	tabsize=2,
+	basicstyle=\footnotesize\ttfamily,breaklines=true
 }
 
-\section{Abstracción y modelado}.
+\section{Abstracción y modelado}
 
 	El objeto a modelar es una intersección de $N$ calles o avenidas.
 	Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}.
@@ -40,7 +40,7 @@
 
 	\subsection{Ningún tramo activo}
 
-		Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (Round-Robin).
+		Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (\emph{round-robin}).
 		Se puede ver esta situación en la figura \ref{fig:ningun-activo}.
 
 		Si estuviera activo el tramo del peatón, entonces se incluye al tramo de peatón al conjunto de tramos participantes del Round-Robin.
@@ -70,7 +70,7 @@
 
 	\subsection{Más de un tramo activo}
 
-		Cuando hay mas de un tramo activo, simplemente debe hacerse $Round-Robin$ como en el caso anterior pero sólo participan los semáforos correspondientes a los tramos activos, permanenciendo el resto en rojo.
+		Cuando hay mas de un tramo activo, simplemente debe hacerse \emph{round-robin} como en el caso anterior pero sólo participan los semáforos correspondientes a los tramos activos, permanenciendo el resto en rojo.
 		Se puede ver la situación de estar dos tramos activos en la figura \ref{fig:dos-activos}.
 
 		\begin{figure}[htbp]
@@ -110,11 +110,16 @@
 
 		Al finalizar ese lapso, se vuelve al funcionamiento normal, previamente descripto.
 		En caso de que hubiera más peatones por cruzar, el sistema no les volverá a otorgar paso hasta que el botón no sea presionado nuevamente.
-		Esa es la única diferencia entre los semáforos de los autos y de los peatones.
+		Esta es la única diferencia entre los semáforos de los autos y de los peatones.
 
 		En la figura \ref{fig:peaton-activo} se observa cómo interactúan los peatones con el sistema de semáforos previamente descripto.
 
-		%TODO colocar la figura. fig:peaton-activo.
+		\begin{figure}[htbp]
+			\centering
+			\includegraphics[width=6cm]{imagenes/peaton-auto.eps}
+			\caption{Intersección con un tramo y el tramo de peatón activos.}
+			\label{fig:peaton-activo}
+		\end{figure}
 
 
 
@@ -144,27 +149,27 @@
 
 \section{Implementación A}
 
-	En esta primera implementación, se modela a cada semáforo como una tarea de FreeRTOS y sus prioridades son estáticas.
+	En esta primera implementación, se modela a cada semáforo como una tarea de FreeRTOS y sus prioridades son fijas.
 	Adicionalmente existe un proceso controlador, de máxima prioridad, que determina quién es la próxima tarea en ingresar a la sección crítica, es decir, en poner en verde su semáforo.
 
-	El controlador realiza dicha planificación a partir de los datos sensados por una clase sensor que lee la actividad de cada tramo.
-	Ésta tiene una prioridad también alta, pero solo corre cuando el controlador le indica.
+	El controlador realiza dicha planificación a partir de los datos sensados por una tarea sensor que lee la actividad de cada tramo.
+	Ésta tiene una prioridad también alta, pero solo corre cuando el controlador le indica, utilizándose un semáforo para la comunicación.
 
 	Al obtener los datos, éste se los pasa al controlador, quien permanece a la espera de los mismos, mediante el modelo productor/consumidor.
-	Dicho modelo representa una utilización ineficiente de los recursos ya que constantemente se realiza una copia de los datos obtenidos para que el controlador pueda disponer de los datos.
+	Esta solución representa una utilización ineficiente de los recursos ya que periódicamente se realiza una copia de los datos obtenidos para que el controlador pueda disponer de los datos.
 
 	El controlador toma los datos y realiza una lista de ejecución que determina en qué orden deben ejecutarse las tareas.
 	Cada tarea se duerme en su propio semáforo, a pesar de que la intersección sea compartida.
-	Posee un semáforo para esperar el verde y uno para el rojo.
+	Se utiliza un semáforo para esperar a poner la luz en verde y otro para ponerla en rojo.
 
-	El controlador ejecuta los $V()$ de cada uno, según corresponda.
+	El controlador ejecuta los \code{V\(\)} de cada uno, según corresponda.
 
 	Entre las ventajas de esta implementación se encuentra el hecho de que se tiene un control total de las ejecuciones de cada proceso.
-	Sin embargo, esta implementación requiere de un esfuerzo adicional para hacer $Round-Robin$ cuando todos los semáforos tienen sus tramos inactivos y ésto no cumple con las especificaciones previamente enunciadas.
+	Sin embargo, esta implementación requiere de un esfuerzo adicional para hacer \emph{round-robin} cuando todos los semáforos tienen sus tramos inactivos. En el momento de desarrollo esto no implicaba un problema porque no estaba específicado que deba manejarse este caso. Pero se consideró que esta situación debería ser contemplada y se modificó la especificación para la siguiente implementación.
 
-	El pseudo código de la tarea controlador se puede observar en el fragmento \ref{lst:imp-a}.
+	El pseudo código de la tarea controlador se puede observar en el código \ref{lst:imp-a}.
 
-	\begin{lstlisting}[label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
+	\begin{lstlisting}[float, label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
 		while (true)
 			Rojo()
 			P(verdeSem)
@@ -180,8 +185,6 @@
 
 \section{Implementación B}
 
-	Como la existencia de una tarea controlador que recibe la actividad de cada tramo representa un uso ineficiente de recursos, se decide eliminar dicho proceso.
-
 	En esta implementación se trata de transferir hacia el kernel de FreeRTOS la responsabilidad de elegir cuál semáforo adquiere el recurso, es decir, a cuál tramo se le da el paso.
 	Se elimina la tarea controlador que planificaba el acceso al medio y se deja total libertad al scheduler de FreeRTOS.
 	Sin embargo, para representar la actividad de cada tarea se cuenta con un sistema de prioridades dinámicas.
@@ -193,14 +196,14 @@
 
 	Al igual que en la implementación A, se tiene, $N + 1$ ($N$ tramos y el tramo distinguido para los peatones) tareas, donde cada una representa un tramo y todas tratan de acceder a una sección crítica, protegida por un sólo mútex.
 	
-	Para que el orden en el cual cada tarea adquiere el mútex sea determinístico, no es suficiente que el planificador sea débilmente $fair$, sino que es necesario que se aplique una política de planificación que realice Round-Robin entre tareas de misma prioridad.
+	Para que el orden en el cual cada tarea adquiere el mútex sea determinístico, no es suficiente que el planificador sea débilmente \emph{fair}, sino que es necesario que se aplique una política de planificación que realice \emph{round-robin} entre tareas de misma prioridad.
 	FreeRTOS permite lograr esto mediante su archivo de configuración.
 
-	Para este caso, se utiliza el modo cooperativo, y al final de cada ejecución se cede el control de la CPU hacia otra tarea.
+	En esta implementación se utiliza el modo cooperativo de planificación que ofrece FreeRTOS, de forma que al final de cada ejecución se cede el control de la CPU hacia otra tarea de forma explícita.
 
-	Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-b}.
+	Cada tarea realiza el algoritmo mostrado en el código \ref{lst:imp-b}.
 
-	\begin{lstlisting}[label=lst:imp-b, caption=Pseudocódigo del programa que corre cada tarea en la implementación B.]
+	\begin{lstlisting}[float, label=lst:imp-b, caption=Pseudocódigo del programa que corre cada tarea en la implementación B.]
 		while (true)
 			P(mutex)
 			do
@@ -217,25 +220,24 @@
 		Fin while
 	\end{lstlisting}
 
-	En la figura \ref{lst:imp-b} se observa una función $yield( )$ que se encarga de ceder la CPU hacia otra tarea de mayor o igual prioridad.
+	En la figura \ref{lst:imp-b} se observa una función \code{yield\(\)} que se encarga de ceder la CPU hacia otra tarea de mayor o igual prioridad.
 	En caso de que no existiera tal tarea, le vuelve a tocar a la tarea que ejecuto dicha función.
 
 	El principal inconveniente de esta implementación se encuentra en el uso de prioridades dinámicas combinado con tareas que no están listas para ejecutarse.
 	Según los experimentos realizados, cuando se cambia la prioridad a una tarea bloqueada, la misma no se actualiza inmediatamente.
-	Si no que, ante una operación $V( )$ que se realiza sobre un mútex, la tarea cuya prioridad fue cambiada, pasa al estado $Ready-to-Run$ con la prioridad vieja.
-	Ésto generó que se abandonara esta implementación y se pensara en una nueva donde las prioridades fuesen estáticas.
+	Si no que, ante una operación \code{V\(\)} que se realiza sobre un mútex, la tarea cuya prioridad fue cambiada pasa al estado \emph{ready to run} con la prioridad vieja.
+	Esto generó que se abandonara esta implementación y se pensara en una nueva donde las prioridades fuesen fijas.
 	En la sección \ref{sec:resultados} se realiza una descripción más detallada de la problemática en cuestión.
 
 
 
 \section{Implementación C}
-
 	La tercera implementación de este proyecto surge con la necesidad de eliminar los problemas que se introducen en las anteriores soluciones.
-	El principal inconveniente que se busca solucionar, se relaciona con el uso de las prioridades dinámicas.
+	El principal inconveniente que se busca solucionar, se relaciona con el uso de las prioridades variantes en el tiempo.
 	En particular, cuando se le cambia la prioridad a una tarea que se encuentra en el estado bloqueada, el programa no responde tal como era de esperarse.
 
 	Para esta implementación se sigue modelando a cada tramo como una tarea de FreeRTOS (incluyendo al de los peatones) y se toma las mejores características de los anteriores diseños.
-	En primer lugar, las prioridades vuelven a ser estáticas, evitando así el problema del cambio de prioridades sobre tareas que no se encuentren en estado $Ready-To-Run$ ni Running.
+	En primer lugar, las prioridades vuelven a ser estáticas, evitando así el problema del cambio de prioridades sobre tareas que no se encuentren en estado \emph{ready to run} ni \emph{running}.
 
 	Por otra parte, se elimina la existencia de un proceso controlador.
 	La tarea de planificación queda a cargo del kernel de FreeRTOS.
@@ -258,7 +260,7 @@
 
 	Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-c}.
 
-	\begin{lstlisting}[label=lst:imp-c, caption=Pseudocódigo del programa que corre cada tarea en la implementación C.]
+	\begin{lstlisting}[float, label=lst:imp-c, caption=Pseudocódigo del programa que corre cada tarea en la implementación C.]
 		int i = id;
 
 		while (true)
@@ -281,10 +283,7 @@
 
 
 
-\section{Resultados y conclusiones}
+\section{Resultados}\label{sec:resultados}
+\section{Conclusiones}\label{sec:conclusiones}
 
 	%TODO agregar este apartado.
-
-
-
-\section{Glosario}
