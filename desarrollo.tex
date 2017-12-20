@@ -322,5 +322,6 @@ basicstyle=\footnotesize\ttfamily,breaklines=true
 
 
 \section{Conclusiones}\label{sec:conclusiones}
+	En este trabajo se analizaron distintas formas de implementar un sistema de semáforos inteligentes sujeto a la especificación aquí dada. Las principales conclusiones involucran a FreeRTOS y estas son: el orden en que se despiertan las tareas dormidas en un semáforo binario no está especificado por el planificador, con lo que su comportamiento está ligado a la implementación y no se puede fiar de el. Posiblemente exista un error en la implementación de FreeRTOS para Arduino que retrasa los efectos esperados al cambiar prioridades de tareas bloqueadas.
+	Estos hechos tienen como consecuencia el hecho de que no es fehacible implementar un sistema conforme a la especificación dada utilizando el planificador de un kernel como el de FreeRTOS de la manera realizada en la implementación B.
 
-%TODO agregar este apartado.
