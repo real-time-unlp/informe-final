@@ -3,198 +3,288 @@
 	tabsize=4
 }
 
-\section{Abstracción y modelado}
-El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}. A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección. Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones.
+\section{Abstracción y modelado}.
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=6cm]{imagenes/interseccion-base.eps}
-	\caption{Intersección base.}
-	\label{fig:interseccion-base}
-\end{figure}
+	El objeto a modelar es una intersección de $N$ calles o avenidas.
+	Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}.
+	A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección.
+	Una avenida de doble sentido de circulación tiene dos tramos.
+	Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones.
 
-Se asume que se existe una forma fiable de detectar la presencia de vehículos en un tramo. Se dice que un tramo está \enquote{activo} si y solo si hay al menos un vehículo en él.
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=6cm]{imagenes/interseccion-base.eps}
+		\caption{Intersección base.}
+		\label{fig:interseccion-base}
+	\end{figure}
 
-Por otro lado, también se debe tener en cuenta la presencia de peatones. Para ello se asume que en cada senda peatonal de la intersección hay un pulsador que permite a un peatón solicitar el paso por una de las sendas peatonales. El tramo de peatones se activa con presionar una vez el pulsador y permanece activo hasta ser atendido. Se dice que un tramo es atendido cuando el sistema de semáforos permite el paso de vehículos o personas, es decir, tiene su semáforo correspondiente en verde.
+	Se asume que existe una forma fiable de detectar la presencia de vehículos en un tramo.
+	Se dice que un tramo está \enquote{activo} si y solo si hay al menos un vehículo en él.
 
-Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua. Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
+	Por otro lado, también se debe tener en cuenta la presencia de peatones.
+	Para ello se asume que en cada senda peatonal de la intersección hay un pulsador que permite a un peatón solicitar el paso por una de las sendas peatonales.
+	El tramo de peatones se activa con presionar una vez el pulsador y permanece activo hasta ser atendido.
+	Se dice que un tramo es atendido cuando el sistema de semáforos permite el paso de vehículos o personas, es decir, tiene su semáforo correspondiente en verde.
 
-\subsection{Especificación del comportamiento}\label{sec:spec}
-Para entender mejor el problema a resolver se tuvo que analizar cada situación que se presenta en una intersección.
-\subsection{Ningún tramo activo}
-Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (Round-Robin). Se puede ver esta situación en la figura \ref{fig:ningun-activo}.
-
-Si estuviera activo el tramo del peatón, entonces se incluye al tramo de peatón al conjunto de tramos participantes del Round-Robin.
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=6cm]{imagenes/ningun-activo.eps}
-	\caption{Intersección sin vehículos ni peatón.}
-	\label{fig:ningun-activo}
-\end{figure}
-
-\subsection{Un tramo activo}
-Cuando hay un solo tramo activo, entonces se le debe dar el paso ininterrumpidamente hasta que haya otro tramo activo (esto incluye el caso en que se active el tramo de peatones).
-
-Se puede ver la situación de estar un sólo tramo activo en la figura \ref{fig:un-activo}.
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=6cm]{imagenes/un-activo.eps}
-	\caption{Intersección con un tramo activo.}
-	\label{fig:un-activo}
-\end{figure}
-
-\subsection{Más de un tramo activo}
-Cuando hay mas de un tramo activo, simplemente debe hacerse Round-Robin como en el caso anterior pero sólo participan los semáforos correspondientes a los tramos activos, permanenciendo el resto en rojo.
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=6cm]{imagenes/dos-activos.eps}
-	\caption{Intersección con dos tramos activos.}
-	\label{fig:dos-activos}
-\end{figure}
-
-Se puede ver la situación de estar dos tramos activos en la figura \ref{fig:dos-activos}.
-
-A modo de resumen, se lista las situaciones y el comportamiento correspondiente en la tabla \ref{tab:comportamiento}.
-
-\rowcolors{2}{gray!25}{white}
-\begin{table}[htbp]
-	\centering
-	\caption{Resumen de comportamiento del sistema ante distintas combinaciones de entrada.}
-	\vspace{0.25cm}
-	\label{tab:comportamiento}
-	\begin{tabular}{cc}
-		\toprule
-		\bf{Tramos activos} & \bf{Comportamiento} \\
-		\midrule
-		0 & Round-robin entre todos los tramos. \\
-		1 & Verde ininterrumpido al único tramo activo. \\
-		$1 < \mbox{TA} \le N$ & Round-robin entre los tramos activos. \\
-		$N$ & Round-robin entre todos los tramos activos. \\
-		\bottomrule
-	\end{tabular}
-\end{table}
+	Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua.
+	Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
 
 
-\subsection{Interacción con peatones}
-En caso de que haya peatones esperando por cruzar, entonces los mismos deben establecer un pedido al sistema, presionando el botón que se encuentra al costado de cada semáforo.
-Esta acción les garantiza que en algún momento todos los semáforos pondrán sus luces en rojo, evitando que cualquier auto cruce y se encienda la luz blanca del peatón.
-En ese momento cualquier peatón que se encuentre en alguna de las esquinas tendrá paso durante un tiempo.
 
-Al finalizar ese lapso, se vuelve al funcionamiento normal, previamente descripto.
-En caso de que hubiera más peatones por cruzar, el sistema no les volverá a otorgar paso hasta que el botón no sea presionado nuevamente.
-Esa es la única diferencia entre los semáforos de los autos y de los peatones.
+	\subsection{Especificación del comportamiento}\label{sec:spec}
 
-\subsection{Uso de procesos}\label{sec:proc}
-Basándose en el marco teórico de la programación concurrente, se puede modelar a cada tramo como un proceso que trata de acceder al recurso compartido (la intersección). De esta forma el problema del control del tránsito se reduce al de la planificación de un recurso compartido. Este recurso compartido programáticamente se convierte entonces en una sección crítica.
+		Para entender mejor el problema a resolver se analiza cada situación que se presenta en una intersección.
+		A continuación se detalla cada caso y se describa la forma en la que se espera que el programa responda.
+
+
+
+	\subsection{Ningún tramo activo}
+
+		Cuando no hay ningún tramo activo, es decir, no hay vehículos en ninguna línea de detención, el sistema debe dar paso a todos los tramos de forma periódica y de a turnos (Round-Robin).
+		Se puede ver esta situación en la figura \ref{fig:ningun-activo}.
+
+		Si estuviera activo el tramo del peatón, entonces se incluye al tramo de peatón al conjunto de tramos participantes del Round-Robin.
+
+		\begin{figure}[htbp]
+			\centering
+			\includegraphics[width=6cm]{imagenes/ningun-activo.eps}
+			\caption{Intersección sin vehículos ni peatón.}
+			\label{fig:ningun-activo}
+		\end{figure}
+
+
+
+	\subsection{Un tramo activo}
+
+		Cuando hay un solo tramo activo, entonces se le debe dar el paso ininterrumpidamente hasta que haya otro tramo activo (esto incluye el caso en que se active el tramo de peatones).
+		Se puede ver la situación de estar un sólo tramo activo en la figura \ref{fig:un-activo}.
+
+		\begin{figure}[htbp]
+			\centering
+			\includegraphics[width=6cm]{imagenes/un-activo.eps}
+			\caption{Intersección con un tramo activo.}
+			\label{fig:un-activo}
+		\end{figure}
+
+
+
+	\subsection{Más de un tramo activo}
+
+		Cuando hay mas de un tramo activo, simplemente debe hacerse $Round-Robin$ como en el caso anterior pero sólo participan los semáforos correspondientes a los tramos activos, permanenciendo el resto en rojo.
+		Se puede ver la situación de estar dos tramos activos en la figura \ref{fig:dos-activos}.
+
+		\begin{figure}[htbp]
+			\centering
+			\includegraphics[width=6cm]{imagenes/dos-activos.eps}
+			\caption{Intersección con dos tramos activos.}
+			\label{fig:dos-activos}
+		\end{figure}
+
+		A modo de resumen, se lista las situaciones y el comportamiento correspondiente en la tabla \ref{tab:comportamiento}.
+
+		\rowcolors{2}{gray!25}{white}
+		\begin{table}[htbp]
+			\centering
+			\caption{Resumen de comportamiento del sistema ante distintas combinaciones de entrada.}
+			\vspace{0.25cm}
+			\label{tab:comportamiento}
+			\begin{tabular}{cc}
+				\toprule
+				\bf{Tramos activos} & \bf{Comportamiento} \\
+				\midrule
+				0 & Round-robin entre todos los tramos. \\
+				1 & Verde ininterrumpido al único tramo activo. \\
+				$1 < \mbox{TA} \le N$ & Round-robin entre los tramos activos. \\
+				$N$ & Round-robin entre todos los tramos activos. \\
+				\bottomrule
+			\end{tabular}
+		\end{table}
+
+
+
+	\subsection{Interacción con peatones}
+
+		En caso de que haya peatones esperando por cruzar, entonces los mismos deben establecer un pedido al sistema, presionando el botón que se encuentra al costado de cada semáforo.
+		Esta acción les garantiza que en algún momento todos los semáforos pondrán sus luces en rojo, evitando que cualquier auto cruce y se encienda la luz blanca del peatón.
+		En ese momento cualquier peatón que se encuentre en alguna de las esquinas tendrá paso durante un tiempo.
+
+		Al finalizar ese lapso, se vuelve al funcionamiento normal, previamente descripto.
+		En caso de que hubiera más peatones por cruzar, el sistema no les volverá a otorgar paso hasta que el botón no sea presionado nuevamente.
+		Esa es la única diferencia entre los semáforos de los autos y de los peatones.
+
+		En la figura \ref{fig:peaton-activo} se observa cómo interactúan los peatones con el sistema de semáforos previamente descripto.
+
+		%TODO colocar la figura. fig:peaton-activo.
+
+
+
+	\subsection{Uso de procesos}\label{sec:proc}
+
+		Basándose en el marco teórico de la programación concurrente, se puede modelar a cada tramo como un proceso que trata de acceder al recurso compartido (la intersección).
+		De esta forma el problema del control del tránsito se reduce al de la planificación de un recurso compartido.
+		Este recurso compartido programáticamente se convierte entonces en una sección crítica.
+
 
 
 \section{Implementación del sistema}
-La implementación del controlador de semáforos se realizó sobre un Arduino Uno, utilizando la plataforma de desarrollo Arduino.Como herramienta de desarrollo se utilizó la extensión PlatformIO para el editor de texto Visual Studio Code.
 
-FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código base y realizar el desarrollo directamente sobre ellos. No existe una implementación oficialmente soportada por Real Engineers Ltd. (la empresa detrás de FreeRTOS), ni tampoco una implementación para el microcontrolador del Arduino Uno, el Atmega 328P. Sin embargo, existe una implementación no oficialmente soportada para Arduino Uno. El repositorio git de esta implementación está en \url{https://github.com/feilipu/Arduino\_FreeRTOS\_Library}.
+	La implementación del controlador de semáforos se realizó sobre un Arduino Uno, utilizando la plataforma de desarrollo Arduino.
+	Como herramienta de desarrollo se utilizó la extensión PlatformIO para el editor de texto Visual Studio Code.
 
-Se realizaron tres implementaciones que implementan el sistema según lo especificado en la sección \ref{sec:spec}. Cada implementación hace uso de las distintas funcionalidades provistas por FreeRTOS de forma distinta, pero todas tienen en común el uso de semáforos, mútexes y tareas. Los procesos se traducen a tareas en FreeRTOS y la exclusión mutua perteneciente a la sección crítica mencionada en la sección \ref{sec:proc} se hace cumplir con el uso de semáforos y mútexes.
+	FreeRTOS provee proyectos prearmados y preconfigurados para tomar como código base y realizar el desarrollo directamente sobre ellos.
+	No existe una implementación oficialmente soportada por Real Engineers Ltd. (la empresa detrás de FreeRTOS), ni tampoco una implementación para el microcontrolador del Arduino Uno, el Atmega 328P.
+	Sin embargo, existe una implementación no oficialmente soportada para Arduino Uno.
+	El repositorio git de esta implementación está en \url{https://github.com/feilipu/Arduino\_FreeRTOS\_Library}.
+
+	Se realizaron tres implementaciones que implementan el sistema según lo especificado en la sección \ref{sec:spec}.
+	Cada implementación hace uso de las distintas funcionalidades provistas por FreeRTOS de forma distinta, pero todas tienen en común el uso de semáforos, mútexes y tareas.
+	Los procesos se traducen a tareas en FreeRTOS y la exclusión mutua perteneciente a la sección crítica mencionada en la sección \ref{sec:proc} se hace cumplir con el uso de semáforos y mútexes.
 
 
 
 \section{Implementación A}
-En esta primera implementación, se modela a cada semáforo como una tarea de FreeRTOS y su prioridad es estática.
-Adicionalmente existe un proceso controlador, de máxima prioridad, que determina quién es la próxima tarea en ingresar a la sección crítica, es decir, en poner en verde su semáforo.
 
-El controlador realiza dicha planificación a partir de los datos sensados por una clase sensor que lee la actividad de cada tramo.
-Ésta tiene una prioridad también alta, pero solo corre cuando el controlador le indica.
+	En esta primera implementación, se modela a cada semáforo como una tarea de FreeRTOS y sus prioridades son estáticas.
+	Adicionalmente existe un proceso controlador, de máxima prioridad, que determina quién es la próxima tarea en ingresar a la sección crítica, es decir, en poner en verde su semáforo.
 
-Al obtener los datos, éste se los pasa al controlador, quien está a la espera de los mismos, mediante el modelo productor/consumidor.
-Dicho modelo representa una utilización ineficiente de los recursos ya que constantemente se realiza una copia de los datos obtenidos para que el controlador pueda disponer de los datos.
+	El controlador realiza dicha planificación a partir de los datos sensados por una clase sensor que lee la actividad de cada tramo.
+	Ésta tiene una prioridad también alta, pero solo corre cuando el controlador le indica.
 
-El controlador toma los datos 
+	Al obtener los datos, éste se los pasa al controlador, quien permanece a la espera de los mismos, mediante el modelo productor/consumidor.
+	Dicho modelo representa una utilización ineficiente de los recursos ya que constantemente se realiza una copia de los datos obtenidos para que el controlador pueda disponer de los datos.
 
+	El controlador toma los datos y realiza una lista de ejecución que determina en qué orden deben ejecutarse las tareas.
+	Cada tarea se duerme en su propio semáforo, a pesar de que la intersección sea compartida.
+	Posee un semáforo para esperar el verde y uno para el rojo.
 
+	El controlador ejecuta los $V()$ de cada uno, según corresponda.
 
+	Entre las ventajas de esta implementación se encuentra el hecho de que se tiene un control total de las ejecuciones de cada proceso.
+	Sin embargo, esta implementación requiere de un esfuerzo adicional para hacer $Round-Robin$ cuando todos los semáforos tienen sus tramos inactivos y ésto no cumple con las especificaciones previamente enunciadas.
 
-El pseudo código de la tarea controlador se puede observar en el fragmento \ref{lst:imp-a}.
-\begin{lstlisting}[label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
+	El pseudo código de la tarea controlador se puede observar en el fragmento \ref{lst:imp-a}.
 
-while (true)
-	Se sensa los tramos
-	Si hay un tramo nuevo activo
-		Se prende éste y se apaga el anterior en verde
-		
-\end{lstlisting}
-
-Una de las desventajas es que se tiene muchas tareas en ejecución debido a que es necesario sensar constantemente los tramos y que se recurre a un controlador para la planificación
-
-\section{Implementación B}
-En esta implementación se trata de transferir hacia el kernel de FreeRTOS la responsabilidad de elegir cuál semáforo adquiere el recurso, es decir, a cual tramo se le da el paso.
-
-Se tienen, al igual que en la implementación A, $N + 1$ ($N$ tramos y el tramo distinguido para los peatones) tareas, donde cada una representa un tramo y todas tratan de acceder a una sección crítica, protegida ahora por un sólo mútex.
-
-Se utilizan dos valores de prioridad en las tareas, una alta y una baja. Las tareas correspondientes a tramos activos toman una prioridad alta y las tareas correspondientes a tramos inactivos toman una prioridad baja. La prioridad de las tareas está ligada a la actividad de su tramo, con lo cual las prioridades van variando a lo largo del funcionamiento del sistema.
-
-Para que el orden en el cual cada tarea adquiere el mútex sea determinístico, no es suficiente que el planificador sea débilmente $fair$, sino que es necesario que se aplique una política de planificación que realice Round-Robin entre tareas de misma prioridad. FreeRTOS permite lograr esto mediante su archivo de configuración.
-
-Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-b}.
-
-\begin{lstlisting}[label=lst:imp-b, caption=Pseudocódigo del programa que corre cada tarea en la implementación B.]
-	while (true)
-		P(mutex)
-		do
+	\begin{lstlisting}[label=lst:imp-a, caption=Pseudocódigo de la tarea controlador.]
+		while (true)
+			Rojo()
+			P(verdeSem)
 			Verde()
 			Delay(...)
-			Leer sensores y actualizar prioridades
-		while (Este tramo sea el unico activo)
-		Amarillo()
-		Delay(...)
-		Rojo()
-		Delay(...)
-		V(mutex)
-	Fin while
-\end{lstlisting}
+			P(rojoSem)
+			Amarillo()
+			Delay(...)
+		Fin while
+	\end{lstlisting}
 
-\section{Implementación C}
 
-La tercera implementación de este proyecto surge con la necesidad de eliminar los problemas que se introducen en las anteriores soluciones.
-El principal inconveniente que se busca solucionar, se relaciona con el uso de las proiridades dinámicas.
-En particular, cuando se le cambia la prioridad a una tarea que se encuentra en el estado bloqueada, el programa no responde tal como era de esperarse.
 
-Para esta implementación se sigue modelando a cada tramo como una tarea de FreeRTOS (incluyendo al de los peatones) y se toma las mejores características de los anteriores diseños.
-En primer lugar, las prioridades vuelven a ser estáticas, evitando así el problema del cambio de prioridades sobre tareas que no se encuentren en estado Ready-To-Run ni Running.
+\section{Implementación B}
 
-Por otra parte, se elimina la existencia de un proceso controlador.
-La tarea de planificación queda a cargo del kernel de FreeRTOS.
-De esta forma el diseño de la solución queda más simple, tal como en la segunda implementación.
-No se utilizan búffers, ni el modelo productor/consumidor y los recursos se aprovechan al máximo.
+	Como la existencia de una tarea controlador que recibe la actividad de cada tramo representa un uso ineficiente de recursos, se decide eliminar dicho proceso.
 
-Es fácil de extender a más tramos, por ejemplo si se agrega el cruce con un diagonal.
-Además permite pensar al peatón como un semáforo más, cosa que no ocurría en la primera implementación.
+	En esta implementación se trata de transferir hacia el kernel de FreeRTOS la responsabilidad de elegir cuál semáforo adquiere el recurso, es decir, a cuál tramo se le da el paso.
+	Se elimina la tarea controlador que planificaba el acceso al medio y se deja total libertad al scheduler de FreeRTOS.
+	Sin embargo, para representar la actividad de cada tarea se cuenta con un sistema de prioridades dinámicas.
+	De esta forma, el scheduler de FreeRTOS sabe en todo momento cuáles semáforos tienen autos en sus tramos y cuáles no.
 
-La principal diferencia respecto de las anteriores soluciones es que en este diseño, la intersección no se implementa con un único mútex.
-Cabe destacar que se sigue pensando como una sóla sección crítica pero en su codificación representa un mútex por cada tarea.
+	Se utilizan dos valores de prioridad en las tareas, una alta y una baja.
+	Las tareas correspondientes a tramos activos toman una prioridad alta y las tareas correspondientes a tramos inactivos toman una prioridad baja. 
+	La prioridad de las tareas está ligada a la actividad de su tramo, con lo cual las prioridades van variando a lo largo del funcionamiento del sistema.
 
-De esta forma cada proceso se duerme en su propio mútex e independientemente de la actividad que haya en su tramo, se garantiza que en algún momento entra a la sección crítica.
-Cuando dicho evento ocurre, la tarea tiene posibilidad de consultar con su sensor si hay autos o peatones (según corresponda) esperando por cruzar, y en caso afirmativo, coloca verde en su semáforo.
+	Al igual que en la implementación A, se tiene, $N + 1$ ($N$ tramos y el tramo distinguido para los peatones) tareas, donde cada una representa un tramo y todas tratan de acceder a una sección crítica, protegida por un sólo mútex.
+	
+	Para que el orden en el cual cada tarea adquiere el mútex sea determinístico, no es suficiente que el planificador sea débilmente $fair$, sino que es necesario que se aplique una política de planificación que realice Round-Robin entre tareas de misma prioridad.
+	FreeRTOS permite lograr esto mediante su archivo de configuración.
 
-Al finalizar su trabajo, la tarea despierta a la próxima para que tenga posibilidad de ejecutarse, y la primera se vuelve a dormir en su propio mútex nuevamente hasta que le toque correr otra vez.
+	Para este caso, se utiliza el modo cooperativo, y al final de cada ejecución se cede el control de la CPU hacia otra tarea.
 
-Este diseño permite que las tareas se autocontrolen sin la necesidad de la existencia de un proceso controlador.
+	Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-b}.
 
-Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-c}.
-
-\begin{lstlisting}[label=lst:imp-c, caption=Pseudocódigo del programa que corre cada tarea en la implementación C.]
-	while (true)
-		P(mutex[i])
-		if (es activo o no hay activos)
+	\begin{lstlisting}[label=lst:imp-b, caption=Pseudocódigo del programa que corre cada tarea en la implementación B.]
+		while (true)
+			P(mutex)
 			do
 				Verde()
 				Delay(...)
-				Leer sensores
+				Leer sensores y actualizar prioridades
 			while (Este tramo sea el unico activo)
 			Amarillo()
 			Delay(...)
 			Rojo()
 			Delay(...)
-		V(mutex[i++])
-	Fin while
-\end{lstlisting}
+			V(mutex)
+			yield()
+		Fin while
+	\end{lstlisting}
+
+	En la figura \ref{lst:imp-b} se observa una función $yield( )$ que se encarga de ceder la CPU hacia otra tarea de mayor o igual prioridad.
+	En caso de que no existiera tal tarea, le vuelve a tocar a la tarea que ejecuto dicha función.
+
+	El principal inconveniente de esta implementación se encuentra en el uso de prioridades dinámicas combinado con tareas que no están listas para ejecutarse.
+	Según los experimentos realizados, cuando se cambia la prioridad a una tarea bloqueada, la misma no se actualiza inmediatamente.
+	Si no que, ante una operación $V( )$ que se realiza sobre un mútex, la tarea cuya prioridad fue cambiada, pasa al estado $Ready-to-Run$ con la prioridad vieja.
+	Ésto generó que se abandonara esta implementación y se pensara en una nueva donde las prioridades fuesen estáticas.
+	En la sección \ref{sec:resultados} se realiza una descripción más detallada de la problemática en cuestión.
+
+
+
+\section{Implementación C}
+
+	La tercera implementación de este proyecto surge con la necesidad de eliminar los problemas que se introducen en las anteriores soluciones.
+	El principal inconveniente que se busca solucionar, se relaciona con el uso de las prioridades dinámicas.
+	En particular, cuando se le cambia la prioridad a una tarea que se encuentra en el estado bloqueada, el programa no responde tal como era de esperarse.
+
+	Para esta implementación se sigue modelando a cada tramo como una tarea de FreeRTOS (incluyendo al de los peatones) y se toma las mejores características de los anteriores diseños.
+	En primer lugar, las prioridades vuelven a ser estáticas, evitando así el problema del cambio de prioridades sobre tareas que no se encuentren en estado $Ready-To-Run$ ni Running.
+
+	Por otra parte, se elimina la existencia de un proceso controlador.
+	La tarea de planificación queda a cargo del kernel de FreeRTOS.
+	De esta forma el diseño de la solución queda más simple, tal como en la segunda implementación.
+	No se utilizan búffers, ni el modelo productor/consumidor y los recursos se aprovechan al máximo.
+
+	Es fácil de extender a más tramos, por ejemplo si se agrega el cruce con un diagonal.
+	Además permite pensar al peatón como un semáforo más, cosa que no ocurría en la primera implementación.
+
+	La principal diferencia respecto de las anteriores soluciones es que en este diseño, la intersección no se implementa con un único mútex.
+	Cabe destacar que se sigue pensando como una sóla sección crítica pero en su codificación representa un mútex por cada tarea.
+
+	De esta forma cada proceso se duerme en su propio mútex e independientemente de la actividad que haya en su tramo, se garantiza que en algún momento entra a la sección crítica.
+	Cuando dicho evento ocurre, la tarea tiene posibilidad de consultar con su sensor si hay autos o peatones (según corresponda) esperando por cruzar, y en caso afirmativo, coloca verde en su semáforo.
+
+	Al finalizar su trabajo, la tarea despierta a la próxima para que tenga posibilidad de ejecutarse, y la primera se vuelve a dormir en su propio mútex nuevamente hasta que le toque correr otra vez.
+
+	Este diseño permite que las tareas se autocontrolen sin la necesidad de la existencia de un proceso controlador.
+	La técnica utilizada se conoce como passing the baton.
+
+	Cada tarea realiza el algoritmo explicitado en el código \ref{lst:imp-c}.
+
+	\begin{lstlisting}[label=lst:imp-c, caption=Pseudocódigo del programa que corre cada tarea en la implementación C.]
+		int i = id;
+
+		while (true)
+			P(mutex[i])
+			if (es activo o no hay activos)
+				do
+					Verde()
+					Delay(...)
+					Leer sensores
+				while (Este tramo sea el unico activo)
+				Amarillo()
+				Delay(...)
+				Rojo()
+				Delay(...)
+			V(mutex[i + 1])
+		Fin while
+	\end{lstlisting}
+
+	En la figura \ref{lst:imp-c} se observa como cada tarea se duerme en su propio mutex $i$ y al finalizar su ejecución despierta al semáforo $i+1$.
+
+
+
+\section{Resultados y conclusiones}
+
+	%TODO agregar este apartado.
+
+
+
+\section{Glosario}
