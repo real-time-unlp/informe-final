@@ -3,9 +3,23 @@ tabsize=2,
 basicstyle=\footnotesize\ttfamily,breaklines=true
 }
 
-\section{Abstracción y modelado}
-	El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}. A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección. Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones. \begin{figure}[htbp] \centering \includegraphics[width=6cm]{imagenes/interseccion-base.eps} \caption{Intersección base.} \label{fig:interseccion-base} \end{figure} Se asume que existe una forma fiable de detectar la presencia de vehículos en un tramo. Se dice que un tramo está \enquote{activo} si y solo si hay al menos un vehículo en él. Por otro lado, también se debe tener en cuenta la presencia de peatones. Para ello se asume que en cada senda peatonal de la intersección hay un pulsador que permite a un peatón solicitar el paso por una de las sendas peatonales. El tramo de peatones se activa con presionar una vez el pulsador y permanece activo hasta ser atendido. Se dice que un tramo es atendido cuando el sistema de semáforos permite el paso de vehículos o personas, es decir, tiene su semáforo correspondiente en verde. Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua.
-	Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
+	\section{Abstracción y modelado}
+	El objeto a modelar es una intersección de $N$ calles o avenidas. Con el objeto de profundizar el análisis, se tomará el caso de una intersección de dos avenidas, como la que se puede ver en la figura \ref{fig:interseccion-base}. A lo largo de este trabajo se utilizará el término \enquote{tramo} para designar al medio por el cual arriban vehículos o personas a la intersección.
+	
+	Una avenida de doble sentido de circulación tiene dos tramos. Con lo cual una intersección de dos avenidas tiene cuatro tramos más un tramo diferenciado para los peatones. 
+	\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=6cm]{imagenes/interseccion-base.eps}
+	\caption{Intersección base.}
+	\label{fig:interseccion-base}
+	\end{figure}
+	Se asume que existe una forma fiable de detectar la presencia de vehículos en un tramo.
+
+	Se dice que un tramo está \enquote{activo} si y solo si hay al menos un vehículo en él.
+
+	Por otro lado, también se debe tener en cuenta la presencia de peatones. Para ello se asume que en cada senda peatonal de la intersección hay un pulsador que permite a un peatón solicitar el paso por una de las sendas peatonales. El tramo de peatones se activa con presionar una vez el pulsador y permanece activo hasta ser atendido.
+
+	Se dice que un tramo es atendido cuando el sistema de semáforos permite el paso de vehículos o personas, es decir, tiene su semáforo correspondiente en verde. Para simplificar el análisis, se modela a la intersección como un recurso compartido al cual se accede con exclusión mutua. Es decir, la intersección puede ser adquirida a lo sumo por un tramo.
 
 
 
